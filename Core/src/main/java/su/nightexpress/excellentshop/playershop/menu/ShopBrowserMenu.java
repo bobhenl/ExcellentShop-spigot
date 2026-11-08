@@ -158,6 +158,7 @@ public class ShopBrowserMenu extends LinkedMenu<ShopPlugin, ShopBrowserMenu.Data
         List<ChestShop> shops = this.module.lookup().getAll().stream()
             .filter(ChestShop::isAccessible)
             .filter(ChestShop::hasProducts)
+            .filter(shop -> this.module.isSameWorldGroup(player, shop))
             .filter(shop -> {
                 if (ownerName != null && !shop.getOwnerName().equalsIgnoreCase(ownerName)) return false;
                 if (itemName != null && !ChestUtils.containsItem(shop, itemName)) return false;

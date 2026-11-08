@@ -50,7 +50,7 @@ jobs:
         if: steps.gate.outputs.build == 'true'
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'maven'
 
       - name: Build

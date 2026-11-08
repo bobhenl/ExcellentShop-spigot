@@ -595,6 +595,10 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
             this.sendPrefixed(ChestLang.ERROR_SHOP_INACTIVE, player);
             return false;
         }
+        if (!this.isSameWorldGroup(player, shop)) {
+            this.sendPrefixed(ChestLang.SHOP_TELEPORT_ERROR_OTHER_GROUP, player);
+            return false;
+        }
 
         Location location = shop.getTeleportLocation();
 
@@ -1393,6 +1397,12 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
         return super.getAvailableCurrencies(player).stream()
             .filter(currency -> this.worldGroups.isCurrencyAllowed(world, currency.getInternalId()))
             .collect(Collectors.toSet());
+    }
+
+    /** True when world groups are off, or the player stands in the shop's world group. */
+    public boolean isSameWorldGroup(@NonNull Player player, @NonNull ChestShop shop) {
+        if (!this.worldGroups.isEnabled()) return true;
+        return this.worldGroups.getGroup(player.getWorld().getName()).equals(this.worldGroups.getGroup(shop.getWorldName()));
     }
 
     @NonNull
