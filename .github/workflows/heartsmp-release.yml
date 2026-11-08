@@ -67,7 +67,7 @@ jobs:
           BASE=$(basename "$JAR" .jar | sed 's/^Core-//')
           VER="${BASE}-heartsmp${{ github.run_number }}"
           cp "$JAR" "ExcellentShop-${VER}.jar"
-          gh release create "$VER" "ExcellentShop-${VER}.jar" \
+          gh release create "$VER" "ExcellentShop-${VER}.jar" --repo "$GITHUB_REPOSITORY" \
             --target "$(git rev-parse HEAD)" \
             --title "ExcellentShop $VER" \
             --notes "Upstream ${BASE} + HeartSMP world group banks. Commit $(git rev-parse --short HEAD)."
