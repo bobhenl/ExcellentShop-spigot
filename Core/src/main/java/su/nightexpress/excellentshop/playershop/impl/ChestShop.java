@@ -485,7 +485,7 @@ public class ChestShop extends AbstractShop<ChestProduct> implements PlayerShop 
         ChestProduct product = new ChestProduct(globalId, this);
 
         content.setCompareNbt(true); // Explicit enable NBT comparasion for ChestShop items.
-        product.setCurrencyId(this.module.getDefinition().getDefaultCurrency());
+        product.setCurrencyId(this.module.getWorldDefaultCurrency(this.getWorldName()));
         product.setContent(content);
         product.setPricing(FlatPricing.of(ChestConfig.SHOP_PRODUCT_INITIAL_BUY_PRICE.get(),
             ChestConfig.SHOP_PRODUCT_INITIAL_SELL_PRICE.get()));

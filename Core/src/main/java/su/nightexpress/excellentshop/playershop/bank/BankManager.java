@@ -129,6 +129,7 @@ public class BankManager extends AbstractManager<ShopPlugin> {
             return;
         }
         if (amount == 0) return;
+        if (!this.checkGroup(player, bank)) return;
 
         double balance = currency.queryBalance(player);
         double depositAmount = amount < 0 ? balance : amount;
@@ -174,6 +175,7 @@ public class BankManager extends AbstractManager<ShopPlugin> {
     public CompletableFuture<Boolean> withdrawFromBank(@NonNull Player player, @NonNull Bank bank, @NonNull Currency currency,
                                     double amount, Runnable refreshUI) {
         if (amount == 0) return CompletableFuture.completedFuture(false);
+        if (!this.checkGroup(player, bank)) return CompletableFuture.completedFuture(false);
 
         double withdrawAmount = amount < 0D ? bank.getAccount().query(currency) : amount;
 
@@ -208,6 +210,22 @@ public class BankManager extends AbstractManager<ShopPlugin> {
     @NonNull
     public Set<Bank> getBanks() {
         return Set.copyOf(this.bankByIdMap.values());
+    }
+
+    @NonNull
+    public Bank getOrCreateBank(@NonNull UUID bankId) {
+        Bank bank = this.getBankById(bankId);
+        return bank != null ? bank : this.createBankAndLoad(bankId);
+    }
+
+    /** Bank money of a world group may only move while the player stands in that group. */
+    private boolean checkGroup(@NonNull Player player, @NonNull Bank bank) {
+        String group = this.module.getWorldGroups().getBankGroup(bank.getHolder());
+        if (group == null) return true;
+        if (group.equals(this.module.getWorldGroups().getGroup(player.getWorld().getName()))) return true;
+
+        this.module.sendPrefixed(ChestLang.BANK_ERROR_WRONG_GROUP, player);
+        return false;
     }
 
     @Nullable

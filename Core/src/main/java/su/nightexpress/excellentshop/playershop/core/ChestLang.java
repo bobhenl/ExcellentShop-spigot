@@ -306,6 +306,11 @@ public class ChestLang implements LangContainer {
             GRAY.wrap("Incorrect currency!")
         );
 
+    public static final MessageLocale BANK_ERROR_WRONG_GROUP = LangEntry.builder("ChestShop.Shop.Bank.Error.WrongGroup")
+        .chatMessage(
+            GRAY.wrap("This shop bank belongs to another game mode. Go back to that mode to use it.")
+        );
+
     public static final MessageLocale BANK_ERROR_NOT_EXIST = LangEntry.builder("ChestShop.Shop.Bank.Error.NotExist")
         .chatMessage(
             GRAY.wrap("Bank does not exist.")

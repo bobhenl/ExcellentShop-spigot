@@ -68,6 +68,7 @@ import su.nightexpress.excellentshop.integration.shop.UpgradeHopperListener;
 import su.nightexpress.excellentshop.module.ModuleContext;
 import su.nightexpress.excellentshop.playershop.bank.Bank;
 import su.nightexpress.excellentshop.playershop.bank.BankManager;
+import su.nightexpress.excellentshop.playershop.bank.WorldGroups;
 import su.nightexpress.excellentshop.playershop.command.ChestShopCommands;
 import su.nightexpress.excellentshop.playershop.core.ChestConfig;
 import su.nightexpress.excellentshop.playershop.core.ChestKeys;
@@ -152,6 +153,7 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
     private ShopView           shopView;
 
     private BankManager    bankManager;
+    private final WorldGroups worldGroups = new WorldGroups();
     private DisplayManager displayManager;
 
     private TransactionLogger logger;
@@ -206,6 +208,7 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
         ConfigMigration.migrateShowcaseCatalog(config); // Then migrate showcase catalog, write 'Showcase.Catalog' section.
 
         config.initializeOptions(ChestConfig.class);
+        this.worldGroups.load(config);
         this.loadBlocks(blocksConfig);
     }
 
@@ -1147,6 +1150,7 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
     }
 
     public @NonNull Optional<Double> queryShopBalance(@NonNull ChestShop shop, @NonNull Currency currency) {
+        if (!this.worldGroups.isCurrencyAllowed(shop.getWorldName(), currency.getInternalId())) return Optional.empty();
         UserInfo profile = shop.getEffectiveMerchantProfile();
         Player player = Players.getPlayer(profile.id());
 
@@ -1164,6 +1168,7 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
     }
 
     public boolean depositShopBalance(@NonNull ChestShop shop, @NonNull Currency currency, double amount) {
+        if (!this.worldGroups.isCurrencyAllowed(shop.getWorldName(), currency.getInternalId())) return false;
         UserInfo profile = shop.getEffectiveMerchantProfile();
         Player player = Players.getPlayer(profile.id());
 
@@ -1186,6 +1191,7 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
     }
 
     public boolean withdrawShopBalance(@NonNull ChestShop shop, @NonNull Currency currency, double amount) {
+        if (!this.worldGroups.isCurrencyAllowed(shop.getWorldName(), currency.getInternalId())) return false;
         UserInfo profile = shop.getEffectiveMerchantProfile();
         Player player = Players.getPlayer(profile.id());
 
@@ -1215,8 +1221,10 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
         if (this.bankManager == null) return null;
 
         UserInfo profile = shop.getEffectiveMerchantProfile();
+        if (!this.worldGroups.isEnabled()) return this.bankManager.getBankById(profile.id());
 
-        return this.bankManager.getBankById(profile.id());
+        UUID bankId = this.worldGroups.getBankId(profile.id(), shop.getWorldName());
+        return this.bankManager.getOrCreateBank(bankId);
     }
 
     public boolean depositToShop(@NonNull Player player, @NonNull ChestProduct product, int units) {
@@ -1373,6 +1381,28 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
     }
 
     @Nullable
+    @NonNull
+    public WorldGroups getWorldGroups() {
+        return this.worldGroups;
+    }
+
+    @Override
+    @NonNull
+    public Set<Currency> getAvailableCurrencies(@NonNull Player player) {
+        String world = player.getWorld().getName();
+        return super.getAvailableCurrencies(player).stream()
+            .filter(currency -> this.worldGroups.isCurrencyAllowed(world, currency.getInternalId()))
+            .collect(Collectors.toSet());
+    }
+
+    @NonNull
+    public String getWorldDefaultCurrency(@NonNull String worldName) {
+        String def = this.getDefinition().getDefaultCurrency();
+        if (this.worldGroups.isCurrencyAllowed(worldName, def)) return def;
+        return this.getEnabledCurrencies().stream().map(Currency::getInternalId)
+            .filter(id -> this.worldGroups.isCurrencyAllowed(worldName, id)).sorted().findFirst().orElse(def);
+    }
+
     public BankManager getBankManager() {
         return this.bankManager;
     }
