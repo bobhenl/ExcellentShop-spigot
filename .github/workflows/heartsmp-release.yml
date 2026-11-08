@@ -62,10 +62,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          BASE=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version -N)
-          VER="${BASE}-heartsmp${{ github.run_number }}"
           JAR=$(ls Core/target/Core-*.jar | grep -v -E 'original-|-sources|-javadoc' | head -n 1)
           test -n "$JAR" || { echo "No plugin jar found"; ls -l Core/target; exit 1; }
+          BASE=$(basename "$JAR" .jar | sed 's/^Core-//')
+          VER="${BASE}-heartsmp${{ github.run_number }}"
           cp "$JAR" "ExcellentShop-${VER}.jar"
           gh release create "$VER" "ExcellentShop-${VER}.jar" \
             --target "$(git rev-parse HEAD)" \
