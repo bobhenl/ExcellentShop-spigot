@@ -1154,8 +1154,20 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
             } else {
                 Block block = shop.getBlock();
                 Location dropLocation = LocationUtil.setCenter3D(block.getLocation().clone());
+                // HeartSMP: when shop items are disabled, give back the plain block and keep the stock
+                // (the shop item could not be placed, and setType(AIR) used to delete the container contents).
+                boolean plainBlock = !ChestConfig.SHOP_ITEM_CREATION_ENABLED.get() && !isCreatedFromItem;
+                if (plainBlock && block.getState() instanceof org.bukkit.block.Container containerState) {
+                    for (ItemStack content : containerState.getSnapshotInventory().getContents()) {
+                        if (content != null && !content.getType().isAir()) {
+                            block.getWorld().dropItemNaturally(dropLocation, content);
+                        }
+                    }
+                }
+                Material blockType = block.getType();
                 block.setType(Material.AIR);
-                block.getWorld().dropItemNaturally(dropLocation, shopBlock.getItemStack());
+                ItemStack drop = plainBlock && blockType.isItem() ? new ItemStack(blockType) : shopBlock.getItemStack();
+                block.getWorld().dropItemNaturally(dropLocation, drop);
             }
         }
 
