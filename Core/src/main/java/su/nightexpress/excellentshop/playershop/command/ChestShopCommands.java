@@ -268,7 +268,7 @@ public class ChestShopCommands {
             UUID targetId = userOptional.get().getId();
 
 
-            // TODO module.openBank(player, targetId);
+            module.openBank(player, targetId);
         }, plugin::runTask);
 
         return true;

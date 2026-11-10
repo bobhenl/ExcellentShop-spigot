@@ -534,6 +534,18 @@ public class ChestShopModule extends AbstractShopModule implements PlayerShopMan
         this.productsMenu.open(player, shop);
     }
 
+    /** HeartSMP: open the bank of ownerId for the world group the viewer stands in (used by /chestshop bank). */
+    public boolean openBank(@NonNull Player viewer, @NonNull UUID ownerId) {
+        if (this.bankManager == null) return false;
+
+        UUID bankId = this.worldGroups.isEnabled() ? this.worldGroups.getBankId(ownerId, viewer.getWorld().getName()) : ownerId;
+        Bank bank = this.bankManager.getOrCreateBank(bankId);
+        if (bank == null) return false;
+
+        this.openBankManagementDialog(viewer, bank, null);
+        return true;
+    }
+
     public void openBankManagementDialog(@NonNull Player player, @NonNull Bank bank, @Nullable Runnable callback) {
         this.dialogRegistry.show(player, PSDialogKeys.BANK_MANAGEMENT, bank, callback);
     }
